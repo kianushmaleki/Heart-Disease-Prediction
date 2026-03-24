@@ -1,5 +1,7 @@
 import numpy as np
 import pandas as pd
+from sklearn.model_selection import train_test_split
+from sklearn.preprocessing import StandardScaler, OneHotEncoder
 
 def load_data(file_path) -> pd.DataFrame:
     """
@@ -22,15 +24,15 @@ def load_data(file_path) -> pd.DataFrame:
 
 
 
-def preprocess_data(data: pd.DataFrame) -> pd.DataFrame:
+def clean_data(data: pd.DataFrame) -> pd.DataFrame:
     """
-    Preprocess the data by handling missing values and encoding categorical variables.
+    Clean the data by handling missing values and encoding categorical variables.
 
     Parameters:
     data (pd.DataFrame): The raw data as a pandas DataFrame.
 
     Returns:
-    pd.DataFrame: The preprocessed data.
+    pd.DataFrame: The cleaned data.
     """
     # Handle missing values: There are three columns with most missing values: "ca", "thal", and "chol". We do not use these columns in our model, so we drop them.
     data = data.drop(columns=["ca", "thal", "chol"])
@@ -43,46 +45,75 @@ def preprocess_data(data: pd.DataFrame) -> pd.DataFrame:
     categorical_columns = ["sex", "cp", "fbs", "restecg", "exang", "slope"]
     data = pd.get_dummies(data, columns=categorical_columns, drop_first=True)
 
-
-    print("Data preprocessing completed.")
+    
+    print("Data cleaning completed.")
     return data
 
 
-def save_preprocessed_data(data: pd.DataFrame, file_path: str) -> None:
+def save_data(data: pd.DataFrame, file_path: str) -> None:
     """
-    Save the preprocessed data to a CSV file.
+    Save the cleaned data to a CSV file.
 
     Parameters:
-    data (pd.DataFrame): The preprocessed data as a pandas DataFrame.
+    data (pd.DataFrame): The cleaned data as a pandas DataFrame.
     file_path (str): The path to save the CSV file.
     """
     try:
         data.to_csv(file_path, index=False)
-        print(f"Preprocessed data saved successfully to {file_path}")
+        print(f"Cleaned data saved successfully to {file_path}")
     except Exception as e:
-        print(f"Error saving preprocessed data: {e}")
+        print(f"Error saving cleaned data: {e}")
+
+
+def split_data(data: pd.DataFrame, target_column: str, test_size: float = 0.2, random_state: int = 42) -> tuple[pd.DataFrame, pd.DataFrame, pd.Series, pd.Series]:
+    """
+    Split the data into training and testing sets.
+
+    Parameters:
+    data (pd.DataFrame): The cleaned data as a pandas DataFrame.
+    target_column (str): The name of the target column.
+    test_size (float): The proportion of the dataset to include in the test split.
+    random_state (int): Controls the shuffling applied to the data before applying the split.
+
+    Returns:
+    tuple of pd.DataFrame: X_train, X_test, y_train, y_test
+    """
+    X = data.drop(columns=[target_column])
+    y = data[target_column]
+    
+    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=test_size, random_state=random_state)
+    
+    print("Data splitting completed.")
+    save_data(X_train, "data/X_train.csv")
+    save_data(X_test, "data/X_test.csv")
+    save_data(y_train, "data/y_train.csv")
+    save_data(y_test, "data/y_test.csv")   
+    print("Train and test sets saved successfully.")
+    return X_train, X_test, y_train, y_test
+
 
 
 if __name__ == "__main__":
     # Example usage:
     loaded_data = load_data("data/heart_disease_uci.csv")
-    preprocessed_data = preprocess_data(loaded_data)
+    cleaned_data = clean_data(loaded_data)
     
-    if preprocessed_data is not None:
+
+    if cleaned_data is not None:
         
         print('-' * 50)
         print("Data Preview:")
-        print(preprocessed_data.head())
+        print(cleaned_data.head())
         print('-' * 50)
         print("\nData Info:")
-        print(preprocessed_data.info())
+        print(cleaned_data.info())
         print('-' * 50)
         print("\nData Description:")
-        print(preprocessed_data.describe())
+        print(cleaned_data.describe())
         print('-' * 50)
-        save_preprocessed_data(preprocessed_data, "data/preprocessed_data.csv")
+        split_data(cleaned_data, target_column="num")
+        print('-' * 50)
 
-    
     else:       
         print("Failed to process data.")
 
