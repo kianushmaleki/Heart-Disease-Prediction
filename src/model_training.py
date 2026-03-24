@@ -1,4 +1,9 @@
 import yaml
 
-with open("configs/random_forest_v3.yaml") as f:
-    config = yaml.safe_load(f)
+# load the model parameters from the YAML file
+def load_model_params(config_file: str) -> dict:
+    with open(config_file, 'r') as file:
+        config = yaml.safe_load(file)
+    return config
+
+

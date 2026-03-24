@@ -34,6 +34,9 @@ def clean_data(data: pd.DataFrame) -> pd.DataFrame:
     Returns:
     pd.DataFrame: The cleaned data.
     """
+    #drop the id column and dataset
+    data = data.drop(columns=["id", "dataset"])
+
     # Handle missing values: There are three columns with most missing values: "ca", "thal", and "chol". We do not use these columns in our model, so we drop them.
     data = data.drop(columns=["ca", "thal", "chol"])
 
@@ -44,6 +47,12 @@ def clean_data(data: pd.DataFrame) -> pd.DataFrame:
     # Encode categorical variables: The categorical variables in the dataset are "sex", "cp", "fbs", "restecg", "exang", and "slope". We will use one-hot encoding for these variables.
     categorical_columns = ["sex", "cp", "fbs", "restecg", "exang", "slope"]
     data = pd.get_dummies(data, columns=categorical_columns, drop_first=True)
+
+    # use StandardScaler to scale the numerical features: "age", "trestbps", "thalch", and "oldpeak".
+    numerical_columns = ["age", "trestbps", "thalch", "oldpeak"]
+    scaler = StandardScaler()
+    data[numerical_columns] = scaler.fit_transform(data[numerical_columns])
+
 
     
     print("Data cleaning completed.")
@@ -98,7 +107,6 @@ if __name__ == "__main__":
     loaded_data = load_data("data/heart_disease_uci.csv")
     cleaned_data = clean_data(loaded_data)
     
-
     if cleaned_data is not None:
         
         print('-' * 50)
