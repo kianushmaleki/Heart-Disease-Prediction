@@ -48,7 +48,7 @@ def preprocess_data(data: pd.DataFrame) -> pd.DataFrame:
     return data
 
 
-def save_preprocessed_data(data: pd.DataFrame, file_path: str):
+def save_preprocessed_data(data: pd.DataFrame, file_path: str) -> None:
     """
     Save the preprocessed data to a CSV file.
 
