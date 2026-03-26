@@ -45,8 +45,8 @@ jobs:
         run: pip install -r requirements.txt
 
       # Running main.py usually triggers the full pipeline
-      - name: Train and Evaluate Model
-        run: python src/main.py
+      # - name: Train and Evaluate Model
+      #  run: python src/main.py
 
       - name: Upload MLflow Runs
         if: always()
