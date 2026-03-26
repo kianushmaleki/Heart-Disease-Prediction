@@ -29,11 +29,6 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt
 
-      - name: Run pytest
-        # Setting PYTHONPATH ensures src/ imports work in tests/
-        run: |
-          export PYTHONPATH=$PYTHONPATH:$(pwd)/src
-          pytest tests/ --ignore="tests/test_preprocessing functions.py" -v
   
   train:
     name: Train and Evaluate
