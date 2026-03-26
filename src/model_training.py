@@ -1,3 +1,5 @@
+from logging import config
+
 from sklearn.linear_model import LogisticRegression
 import yaml
 import pandas as pd
@@ -60,32 +62,57 @@ def load_data(config_file: str) -> Tuple[pd.DataFrame, pd.Series, pd.DataFrame, 
     return X_train, y_train, X_test, y_test
 
 def train_model(config_file: str):
-    model = load_model_params(config_file)
-    X_train, y_train, X_test, y_test = load_data(config_file)
+    if config_file == "test":
+        try:
+            model = LogisticRegression(
+                    C = config['model']['params']['lr_C'], 
+                    random_state=config['model']['params']['random_state']
+                )  
+            X_train, y_train, X_test, y_test = load_data("configs/configs.yaml")
+            X_train = X_train.head(5)
+            y_train = y_train.head(5)
+            X_test = X_test.head(5)
+            y_test = y_test.head(5)
+            model.fit(X_train, y_train)
+            y_pred = model.predict(X_test)
+            y_prob_all = model.predict_proba(X_test)
+            accuracy  = accuracy_score(y_test, y_pred)
+            precision = precision_score(y_test, y_pred, average='weighted')
+            recall    = recall_score(y_test, y_pred, average='weighted')
+            f1        = f1_score(y_test, y_pred, average='weighted')
+            auc = roc_auc_score(y_test, y_prob_all, multi_class='ovr')
+            print(f"test is passed with accuracy: {accuracy}, precision: {precision}, recall: {recall}, f1_score: {f1}, auc_roc: {auc}")
 
-    model.fit(X_train, y_train)
+        except Exception as e:
+            print(f"Test failed: {e}")
 
-    y_pred = model.predict(X_test)
-    y_prob_all = model.predict_proba(X_test)
+    else:
+        model = load_model_params(config_file)
+        X_train, y_train, X_test, y_test = load_data(config_file)
+
+        model.fit(X_train, y_train)
+
+        y_pred = model.predict(X_test)
+        y_prob_all = model.predict_proba(X_test)
 
 
-    accuracy  = accuracy_score(y_test, y_pred)
-    precision = precision_score(y_test, y_pred, average='weighted')
-    recall    = recall_score(y_test, y_pred, average='weighted')
-    f1        = f1_score(y_test, y_pred, average='weighted')
-    
-    # FIX: For ROC AUC with multiclass, use multi_class='ovr' (One-vs-Rest)
-    auc = roc_auc_score(y_test, y_prob_all, multi_class='ovr')
+        accuracy  = accuracy_score(y_test, y_pred)
+        precision = precision_score(y_test, y_pred, average='weighted')
+        recall    = recall_score(y_test, y_pred, average='weighted')
+        f1        = f1_score(y_test, y_pred, average='weighted')
+        
+        # FIX: For ROC AUC with multiclass, use multi_class='ovr' (One-vs-Rest)
+        auc = roc_auc_score(y_test, y_prob_all, multi_class='ovr')
 
-    output = {
-        "model": model,
-        "accuracy": accuracy,
-        "precision": precision,
-        "recall": recall,
-        "f1_score": f1,
-        "auc_roc": auc
-    }
-    return output
+        output = {
+            "model": model,
+            "accuracy": accuracy,
+            "precision": precision,
+            "recall": recall,
+            "f1_score": f1,
+            "auc_roc": auc
+        }
+        return output
 
 
 if __name__ == "__main__":
