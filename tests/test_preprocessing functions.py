@@ -21,7 +21,7 @@ if src_path not in sys.path:
 from model_training import load_data
 
 X_train, y_train, X_test, y_test = load_data("configs/configs.yaml")
-print(len(X_train), len(y_train), len(X_test), len(y_test))
+
 
 # this is a test to check that the load_data function correctly loads the data and that there are no null values in the loaded data
 def test_load_data_no_nulls():
