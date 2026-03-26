@@ -2,11 +2,14 @@ from sklearn.linear_model import LogisticRegression
 import yaml
 import pandas as pd
 from sklearn.ensemble import RandomForestClassifier, GradientBoostingClassifier
-from sklearn.metrics import accuracy_score
+from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score, roc_auc_score
 from typing import Tuple, Any
+import mlflow
 
-# 1. Updated Type Hint to reflect the 8 return values
-def load_model_params(config_file: str) -> Tuple[pd.DataFrame, pd.Series, pd.DataFrame, pd.Series, str, int, int, int]:
+
+
+# 1. Updated Type Hint to reflect the 8 the model
+def load_model_params(config_file: str):
     print(f"Loading configuration of the model from {config_file}...")
     with open(config_file, 'r') as file:
         config = yaml.safe_load(file)
@@ -42,7 +45,7 @@ def load_model_params(config_file: str) -> Tuple[pd.DataFrame, pd.Series, pd.Dat
         raise ValueError(f"Unsupported model type: {config['model']['type']}")
         
 
-def load_data(config_file: str) -> Tuple[pd.DataFrame, pd.Series, pd.DataFrame, pd.Series, str, int, int, int]:
+def load_data(config_file: str) -> Tuple[pd.DataFrame, pd.Series, pd.DataFrame, pd.Series]:
     print(f"Loading the data from {config_file}...")
     with open(config_file, 'r') as file:
         config = yaml.safe_load(file)
@@ -56,16 +59,35 @@ def load_data(config_file: str) -> Tuple[pd.DataFrame, pd.Series, pd.DataFrame, 
     print("Data loaded successfully.")
     return X_train, y_train, X_test, y_test
 
-def train_model():
-    model = load_model_params('configs/configs.yaml')
-    X_train, y_train, X_test, y_test = load_data('configs/configs.yaml')
+def train_model(config_file: str):
+    model = load_model_params(config_file)
+    X_train, y_train, X_test, y_test = load_data(config_file)
 
-    # .fit() will now be happy because y_train is a Series (1D)
     model.fit(X_train, y_train)
 
     y_pred = model.predict(X_test)
+    y_prob_all = model.predict_proba(X_test)
 
-    print(f"Accuracy: {accuracy_score(y_test, y_pred):.2%}")
+
+    accuracy  = accuracy_score(y_test, y_pred)
+    precision = precision_score(y_test, y_pred, average='weighted')
+    recall    = recall_score(y_test, y_pred, average='weighted')
+    f1        = f1_score(y_test, y_pred, average='weighted')
+    
+    # FIX: For ROC AUC with multiclass, use multi_class='ovr' (One-vs-Rest)
+    auc = roc_auc_score(y_test, y_prob_all, multi_class='ovr')
+
+    output = {
+        "model": model,
+        "accuracy": accuracy,
+        "precision": precision,
+        "recall": recall,
+        "f1_score": f1,
+        "auc_roc": auc
+    }
+    return output
+
 
 if __name__ == "__main__":
-    train_model()
+    print("Training the model...")
+    print(train_model())
