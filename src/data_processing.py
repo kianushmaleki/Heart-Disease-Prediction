@@ -74,7 +74,7 @@ def save_data(data: pd.DataFrame, file_path: str) -> None:
         print(f"Error saving cleaned data: {e}")
 
 
-def split_data(data: pd.DataFrame, target_column: str, test_size: float = 0.2, random_state: int = 42) -> tuple[pd.DataFrame, pd.DataFrame, pd.Series, pd.Series]:
+def split_data( data: pd.DataFrame, target_column: str, test_size: float = 0.2, random_state: int = 42) -> tuple[pd.DataFrame, pd.DataFrame, pd.Series, pd.Series]:
     """
     Split the data into training and testing sets.
 
